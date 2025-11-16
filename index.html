@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Đồng hồ sinh học đẹp</title>
+<style>
+  :root{
+    --size: 420px;
+    --bg: linear-gradient(180deg,#0f1724 0%, #071027 100%);
+    --glass: rgba(255,255,255,0.06);
+    --accent1: #7ee8fa;
+    --accent2: #5b2cff;
+    --soft: rgba(255,255,255,0.06);
+    --glass-2: rgba(255,255,255,0.03);
+    --shadow: 0 10px 30px rgba(2,6,23,0.6);
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: #e6eef8;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+
+  /* page card */
+  .card{
+    width: calc(var(--size) + 120px);
+    max-width: calc(100% - 40px);
+    padding: 28px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: var(--shadow);
+    display:flex;
+    gap:28px;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* decorative left panel with legend */
+  .info{
+    width:120px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .title{
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:0.2px;
+    color:#fff;
+  }
+  .subtitle{
+    font-size:12px;
+    color: #b8d3ff;
+    opacity:0.9;
+  }
+
+  .legend {
+    margin-top:6px;
+    display:flex;
+    gap:8px;
+    flex-direction:column;
+    width:100%;
+  }
+  .legend .item{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    font-size:12px;
+    color:#cfe6ff;
+  }
+  .pill{
+    width:14px;
+    height:14px;
+    border-radius:4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .pill.sleep{ background: linear-gradient(90deg,#091233,#0d2a4a); }
+  .pill.morning{ background: linear-gradient(90deg,#ffd89b,#ffb86b); }
+  .pill.day{ background: linear-gradient(90deg,#a1ffce,#faffd1); }
+  .pill.evening{ background: linear-gradient(90deg,#ff9a9e,#fecfef); }
+
+  /* clock wrapper */
+  .clock-wrap{
+    width: var(--size);
+    height: var(--size);
+    display:grid;
+    place-items:center;
+    position:relative;
+  }
+
+  /* main clock circle with conic segments for circadian phases */
+  .clock{
+    width: calc(var(--size) - 40px);
+    height: calc(var(--size) - 40px);
+    border-radius:50%;
+    position:relative;
+    display:grid;
+    place-items:center;
+    padding:20px;
+    box-shadow: inset 0 6px 24px rgba(0,0,0,0.6), 0 8px 30px rgba(2,6,23,0.6);
+    background:
+      conic-gradient(
+        /* Sleep 22:00 - 06:00 -> 8 hours -> 120deg (8/24*360) */
+        #071033 270deg, #071033 330deg,
+        /* Morning 6:00-9:00 (3h -> 45deg) */
+        #ffd89b 330deg, #ffb86b 15deg,
+        /* Day 9:00-18:00 (9h -> 135deg) */
+        #a1ffce 15deg, #faffd1 150deg,
+        /* Evening 18:00-22:00 (4h -> 60deg) */
+        #ff9a9e 150deg, #fecfef 210deg,
+        /* close back to sleep */
+        #071033 210deg, #071033 270deg
+      ),
+      radial-gradient(circle at 30% 22%, rgba(255,255,255,0.04), transparent 12%),
+      rgba(0,0,0,0.12);
+    overflow:visible;
+  }
+
+  /* inner glass for contrast */
+  .clock .inner{
+    width:86%;
+    height:86%;
+    border-radius:50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    display:grid;
+    place-items:center;
+    position:relative;
+    box-shadow: inset 0 6px 18px rgba(255,255,255,0.02);
+    backdrop-filter: blur(6px);
+  }
+
+  /* hour markers */
+  .ticks{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    pointer-events:none;
+  }
+  .tick{
+    position:absolute;
+    width:2px;
+    height:12%;
+    top:4%;
+    left:50%;
+    transform-origin:50% 90%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.3));
+    border-radius:2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+  .tick.small{
+    height:8%;
+    opacity:0.6;
+  }
+
+  /* clock hands */
+  .hand{
+    position:absolute;
+    width:50%;
+    height:2px;
+    left:50%;
+    top:50%;
+    transform-origin:0% 50%;
+    transform:rotate(90deg);
+    transition: transform 0.2s cubic-bezier(.4,.9,.2,1);
+    border-radius:2px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .hand.hour{
+    width:36%;
+    height:6px;
+    background: linear-gradient(90deg,#fff, #cfdcff);
+    left:50%;
+  }
+  .hand.minute{
+    width:46%;
+    height:4px;
+    background: linear-gradient(90deg,#fff,#a9d0ff);
+    left:50%;
+  }
+  .hand.second{
+    width:48%;
+    height:2px;
+    background: linear-gradient(90deg,#ffef8c,#ff7c7c);
+    left:50%;
+    opacity:0.95;
+  }
+
+  /* center cap */
+  .cap{
+    width:14px;
+    height:14px;
+    background: radial-gradient(circle at 30% 25%, #fff, #d1e9ff 50%, #9fbdf0 100%);
+    border-radius:50%;
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 1px rgba(255,255,255,0.7);
+  }
+
+  /* sun/moon icon that orbits */
+  .orb{
+    position:absolute;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    transform-origin: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    transition: transform 0.2s linear;
+    background: linear-gradient(180deg,#fff7c2,#ffdf6b);
+    color:#303030;
+    font-weight:700;
+    font-size:16px;
+  }
+
+  /* digital readout & labels */
+  .readout{
+    position:absolute;
+    bottom:18px;
+    text-align:center;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:14px;
+    color:#eaf6ff;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:8px 12px;
+    border-radius:10px;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .phase-label{
+    font-size:12px;
+    margin-top:6px;
+    color:#dbeeff;
+    opacity:0.9;
+  }
+
+  /* small decorative stars */
+  .stars{
+    position:absolute;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    top:-18%;
+    left:-18%;
+    filter: blur(0.6px);
+    opacity:0.85;
+  }
+  .star{
+    position:absolute;
+    width:3px;
+    height:3px;
+    background: radial-gradient(circle,#fff,#cde7ff);
+    border-radius:50%;
+    box-shadow: 0 0 8px rgba(255,255,255,0.25);
+    opacity:0.9;
+  }
+
+  /* responsive tweak */
+  @media (max-width:720px){
+    :root{ --size:320px; }
+    .card{ padding:18px; gap:14px; width:calc(var(--size) + 70px); }
+    .info{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="card" role="application" aria-label="Đồng hồ sinh học">
+    <div class="info" aria-hidden="true">
+      <div class="title">Đồng hồ sinh học</div>
+      <div class="subtitle">Chu kỳ giả lập: Sleep / Morning / Day / Evening</div>
+
+      <div class="legend">
+        <div class="item"><div class="pill sleep"></div>Ngủ (22:00 - 06:00)</div>
+        <div class="item"><div class="pill morning"></div>Sáng sớm (06:00 - 09:00)</div>
+        <div class="item"><div class="pill day"></div>Ban ngày (09:00 - 18:00)</div>
+        <div class="item"><div class="pill evening"></div>Tối (18:00 - 22:00)</div>
+      </div>
+
+      <div style="margin-top:auto; font-size:12px; color:#bcd7ff; opacity:0.9;">
+        Tip: mở bằng Live Server để xem animation mượt.
+      </div>
+    </div>
+
+    <div class="clock-wrap">
+      <!-- decorative stars -->
+      <div class="stars" id="stars"></div>
+
+      <div class="clock" id="clock" role="img" aria-label="Clock face">
+        <div class="ticks" id="ticks"></div>
+
+        <div class="inner">
+          <!-- orbiting sun/moon -->
+          <div class="orb" id="orb">☀</div>
+
+          <!-- hands -->
+          <div class="hand hour" id="hourHand"></div>
+          <div class="hand minute" id="minuteHand"></div>
+          <div class="hand second" id="secondHand"></div>
+
+          <div class="cap"></div>
+
+          <div class="readout" id="readout">
+            <div id="digitalTime">--:--:--</div>
+            <div class="phase-label" id="phaseLabel">Phase</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  Đồng hồ analog + digital + orb (mặt trời/mặt trăng) di chuyển theo giờ.
+  - copy file này vào index.html
+  - Live update mỗi giây.
+*/
+
+/* helper: tạo ticks (12 major + 48 minor) */
+(function createTicks(){
+  const ticks = document.getElementById('ticks');
+  for(let i=0;i<60;i++){
+    const t = document.createElement('div');
+    t.classList.add('tick');
+    if(i % 5 !== 0) t.classList.add('small');
+    t.style.transform = `rotate(${i * 6}deg) translate(-50%, 0)`;
+    ticks.appendChild(t);
+  }
+})();
+
+/* tạo vài ngôi sao decorative */
+(function createStars(){
+  const starsWrap = document.getElementById('stars');
+  const count = 14;
+  for(let i=0;i<count;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const angle = Math.random() * Math.PI * 2;
+    const r = (Math.random()*45)+20; // percent offset
+    const x = 50 + r*Math.cos(angle);
+    const y = 50 + r*Math.sin(angle);
+    s.style.left = x + '%';
+    s.style.top = y + '%';
+    const size = Math.round(Math.random()*3)+1;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.opacity = (0.4 + Math.random()*0.9).toString();
+    starsWrap.appendChild(s);
+  }
+})();
+
+/* main update loop */
+(function clockLoop(){
+  const hourHand = document.getElementById('hourHand');
+  const minuteHand = document.getElementById('minuteHand');
+  const secondHand = document.getElementById('secondHand');
+  const digital = document.getElementById('digitalTime');
+  const orb = document.getElementById('orb');
+  const phaseLabel = document.getElementById('phaseLabel');
+
+  function pad(n){ return n < 10 ? '0'+n : n; }
+
+  function update(){
+    const now = new Date();
+    const hh = now.getHours();
+    const mm = now.getMinutes();
+    const ss = now.getSeconds();
+    const ms = now.getMilliseconds();
+
+    // analog hand angles (smooth)
+    const secAngle = (ss + ms/1000) * 6; // 360/60
+    const minAngle = (mm + ss/60) * 6;
+    const hourAngle = ((hh % 12) + mm/60 + ss/3600) * 30; // 360/12
+
+    hourHand.style.transform = `rotate(${hourAngle}deg) translate(-50%, -50%)`;
+    minuteHand.style.transform = `rotate(${minAngle}deg) translate(-50%, -50%)`;
+    secondHand.style.transform = `rotate(${secAngle}deg) translate(-50%, -50%)`;
+
+    // digital
+    digital.textContent = `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+
+    // determine current circadian phase
+    // Sleep: 22:00 - 06:00
+    // Morning: 06:00 - 09:00
+    // Day: 09:00 - 18:00
+    // Evening: 18:00 - 22:00
+    let phase = '';
+    if(hh >= 22 || hh < 6) phase = 'Ngủ (22:00 - 06:00)';
+    else if(hh >= 6 && hh < 9) phase = 'Sáng sớm (06:00 - 09:00)';
+    else if(hh >= 9 && hh < 18) phase = 'Ban ngày (09:00 - 18:00)';
+    else phase = 'Tối (18:00 - 22:00)';
+    phaseLabel.textContent = phase;
+
+    // orb position: map time of day (0-24) to angle on clock face.
+    // We'll set 0:00 at top (270deg), add 15deg per hour roughly so 24->360
+    // Simpler: compute fraction of day -> angle (0 at top)
+    const dayFraction = (hh + mm/60 + ss/3600) / 24; // 0..1
+    const orbAngleDeg = (dayFraction * 360) - 90; // -90 so 0h at top
+    const radius = (document.querySelector('.clock').clientWidth/2) - 36;
+    // place orb using rotation around center
+    const cx = document.querySelector('.clock').clientWidth/2;
+    const cy = cx;
+    // compute in px relative to clock center
+    const rad = orbAngleDeg * Math.PI / 180;
+    const x = cx + radius*Math.cos(rad);
+    const y = cy + radius*Math.sin(rad);
+    // but we use percent, easier: position via transform rotate around center
+    const orbEl = orb;
+    orbEl.style.left = '50%';
+    orbEl.style.top = '50%';
+    orbEl.style.transform = `translate(-50%,-50%) rotate(${orbAngleDeg}deg) translate(${radius}px) rotate(${-orbAngleDeg}deg)`;
+
+    // change orb icon and brightness by phase (sun or moon)
+    if(hh >= 6 && hh < 18){
+      orbEl.textContent = '☀';
+      orbEl.style.background = 'linear-gradient(180deg,#fff7c2,#ffdf6b)';
+      orbEl.style.boxShadow = '0 8px 24px rgba(255,200,80,0.14)';
+    } else {
+      orbEl.textContent = '☾';
+      orbEl.style.background = 'linear-gradient(180deg,#e6f0ff10,#aab6ff10)';
+      orbEl.style.boxShadow = '0 8px 24px rgba(120,140,255,0.08)';
+      orbEl.style.color = '#eaf2ff';
+    }
+
+    // subtle background glow depending on phase
+    const clockEl = document.getElementById('clock');
+    if(phase.startsWith('Ngủ')){
+      clockEl.style.boxShadow = 'inset 0 6px 24px rgba(0,0,0,0.75), 0 12px 40px rgba(2,6,23,0.9)';
+    } else if(phase.startsWith('Sáng')){
+      clockEl.style.boxShadow = 'inset 0 6px 24px rgba(255,255,255,0.02), 0 12px 40px rgba(255,200,120,0.06)';
+    } else if(phase.startsWith('Ban ngày')){
+      clockEl.style.boxShadow = 'inset 0 6px 24px rgba(255,255,255,0.03), 0 12px 40px rgba(150,220,180,0.06)';
+    } else {
+      clockEl.style.boxShadow = 'inset 0 6px 24px rgba(0,0,0,0.4), 0 12px 40px rgba(200,120,170,0.06)';
+    }
+  }
+
+  // start interval
+  update();
+  setInterval(update, 1000);
+})();
+</script>
+</body>
+</html>
