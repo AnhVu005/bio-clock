@@ -51,7 +51,6 @@ body::before {
   overflow: visible;
 }
 
-/* Glow phía sau đồng hồ */
 .clock-wrapper::before {
   content: "";
   position: absolute;
@@ -72,7 +71,6 @@ body::before {
   z-index: -3;
 }
 
-/* Glow động neon */
 @keyframes neonPulse {
   0%, 100% { transform: scale(1); opacity: 0.6; }
   50% { transform: scale(1.1); opacity: 1; }
@@ -147,6 +145,83 @@ body::before {
   text-shadow: 0 0 8px #ffd700;
   text-align: center;
 }
+
+/* POPUP LỊCH TẬP NÂNG CAO */
+.popup {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+}
+
+.popup-content {
+  background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+  border-radius: 20px;
+  padding: 30px 25px;
+  width: 320px;
+  text-align: left;
+  box-shadow: 0 0 40px rgba(0,255,255,0.5);
+  animation: zoomGlow 0.3s ease-out;
+}
+
+@keyframes zoomGlow {
+  0% { transform: scale(0.8); opacity: 0; filter: drop-shadow(0 0 0 #00ffff); }
+  100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 20px #00ffff); }
+}
+
+.popup-content h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  color: #00ffff;
+  text-shadow: 0 0 15px #00ffff;
+}
+
+.popup-content ul {
+  list-style: none;
+  padding: 0;
+  line-height: 1.8rem;
+}
+
+.popup-content li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,255,255,0.2);
+  font-weight: 500;
+  color: #48ff00;
+  display: flex;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.popup-content li:hover {
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff;
+}
+
+.popup-content button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #00ffaa, #00ffff);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 15px #00ffaa;
+  transition: all 0.2s;
+}
+
+.popup-content button:hover {
+  background: linear-gradient(135deg, #00ffff, #00ffaa);
+  box-shadow: 0 0 25px #00ffff;
+}
+
+
 </style>
 </head>
 <body>
@@ -159,6 +234,27 @@ body::before {
   <div class="hand second" id="secondHand"></div>
   <div class="center-dot"></div>
   <div class="digital" id="digitalClock">00:00:00</div>
+</div>
+<!-- Dòng chữ nhấn để xem chi tiết -->
+
+
+<!-- POPUP LỊCH TẬP -->
+<div id="popup" class="popup">
+  
+  <div class="popup-content">
+    
+    <h2>Lịch tập chi tiết</h2>
+    <ul>
+      <li><span>T2</span> <span>Ngực – Tay sau – Bụng</span></li>
+      <li><span>T3</span> <span>Vai – Chân – Bắp chân</span></li>
+      <li><span>T4</span> <span>Lưng – Vai – Tay trước</span></li>
+      <li><span>T5</span> <span>Ngực – Tay sau – Bụng</span></li>
+      <li><span>T6</span> <span>Vai – Chân – Bắp chân</span></li>
+      <li><span>T7</span> <span>Lưng – Bụng – Tay trước</span></li>
+      <li><span>CN</span> <span>Nghỉ – Sóc lọ</span></li>
+    </ul>
+    <button id="closePopup">Đóng</button>
+  </div>
 </div>
 
 <script>
@@ -178,9 +274,8 @@ function updateClock(){
   const h = vnTime.getHours();
   const m = vnTime.getMinutes();
   const s = vnTime.getSeconds();
-  const day = vnTime.getDay(); // 0 = CN, 1 = T2 ...
+  const day = vnTime.getDay();
 
-  // Kim đồng hồ
   const hourDeg = ((h % 12) + m/60 + s/3600) * 30 + 180;
   const minuteDeg = (m + s/60) * 6 + 180;
   const secondDeg = s * 6 + 180;
@@ -188,12 +283,10 @@ function updateClock(){
   document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
   document.getElementById('secondHand').style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
 
-  // Thứ và đồng hồ số
   const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   document.getElementById('digitalClock').textContent =
     `${days[day]} ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
 
-  // Lịch tập gym theo ngày
   let schedule = '';
   switch(day) {
     case 1: schedule = 'Ngực, Tay sau, Bụng'; break;
@@ -206,7 +299,6 @@ function updateClock(){
   }
   document.getElementById('phase').textContent = schedule;
 
-  // Màu nền theo giờ
   let bgColor = '';
   if(h >= 6 && h < 12) bgColor = 'linear-gradient(135deg,#1a1a1a,#4caf50)';
   else if(h >= 12 && h < 18) bgColor = 'linear-gradient(135deg,#1a1a1a,#2196f3)';
@@ -217,6 +309,15 @@ function updateClock(){
 
 setInterval(updateClock, 1000);
 updateClock();
+
+// Popup xem chi tiết lịch tập
+document.getElementById('clockWrapper').addEventListener('click', () => {
+  document.getElementById('popup').style.display = 'flex';
+});
+document.getElementById('closePopup').addEventListener('click', () => {
+  document.getElementById('popup').style.display = 'none';
+});
+
 </script>
 
 </body>
